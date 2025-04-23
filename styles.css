@@ -1,0 +1,55 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navigation Bar Styles */
+.navbar {
+    background-color: #333;
+    padding: 10px 20px;
+    color: white;
+    text-align: center;
+}
+
+.navbar a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+/* Main Content Styles */
+.main-content {
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* User Info (Avatar and Name) */
+.user-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.user-info img {
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    margin-right: 20px;
+}
+
+.user-info .name {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Style for avatar image */
+.avatar {
+    width: 100px; /* Adjust the size as needed */
+    height: 100px; /* Adjust the size as needed */
+    object-fit: cover; /* Ensures the image scales properly without distortion */
+    border-radius: 50%; /* Makes the avatar round */
+    margin-right: 15px; /* Adds some space between avatar and name */
+}

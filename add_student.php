@@ -24,10 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <h2>Add Student</h2>
 <form method="post">
-<input name="first_name" pattern="[A-Za-zĀāĒēĪīŪūĶķĻļŅņŠšĢģŽžČč]+" maxlength="30" required> <br>
-<input name="last_name" pattern="[A-Za-zĀāĒēĪīŪūĶķĻļŅņŠšĢģŽžČč]+" maxlength="30" required><br>
-<input name="email" type="email" required><br>
-<input type="password" name="password" required minlength="8"
+<input name="first_name" placeholder="First Name" pattern="[A-Za-zĀāĒēĪīŪūĶķĻļŅņŠšĢģŽžČč]+" maxlength="30" required> <br>
+<input name="last_name"  placeholder="Last Name" pattern="[A-Za-zĀāĒēĪīŪūĶķĻļŅņŠšĢģŽžČč]+" maxlength="30" required><br>
+<input name="email" placeholder="Email" type="email" required><br>
+<input type="password" placeholder="Password" name="password" required minlength="8"
     title="Password must be at least 8 characters, include one uppercase letter, and one number or special character."><br>
     <button type="submit">Add Student</button>
 </form>

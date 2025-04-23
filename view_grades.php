@@ -7,7 +7,7 @@ requireLogin();
 $isTeacher = $_SESSION['role'] === 'teacher';
 $userId = $_SESSION['user_id'];
 
-// Initialize the base query
+// Initialize base query
 $query = "
     SELECT grades.id, students.first_name, students.last_name, subjects.subject_name, grades.grade, grades.created_at
     FROM grades
@@ -15,64 +15,76 @@ $query = "
     JOIN subjects ON grades.subject_id = subjects.id
 ";
 
-// Initialize filter array and parameters
+// Filters and params
 $filters = [];
 $params = [];
 
 if ($isTeacher) {
-    // Get all students for the dropdown
-    $studentsStmt = $pdo->query("SELECT id, first_name, last_name FROM students");
-    $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get students and subjects for dropdown
+    $students = $pdo->query("SELECT id, first_name, last_name FROM students")->fetchAll(PDO::FETCH_ASSOC);
+    $subjects = $pdo->query("SELECT id, subject_name FROM subjects")->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get all subjects for the dropdown
-    $subjectsStmt = $pdo->query("SELECT id, subject_name FROM subjects");
-    $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Apply student filter if set
     if (!empty($_GET['student_id'])) {
         $filters[] = "grades.student_id = ?";
         $params[] = $_GET['student_id'];
     }
 
-    // Apply subject filter if set
     if (!empty($_GET['subject_id'])) {
         $filters[] = "grades.subject_id = ?";
         $params[] = $_GET['subject_id'];
     }
 } else {
-    // If not a teacher, only show the logged-in student's grades
+    // Student view: get only their grades
     $filters[] = "grades.student_id = ?";
     $params[] = $userId;
+
+    // Get subjects for the student filter
+    $subjects = $pdo->query("SELECT id, subject_name FROM subjects")->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!empty($_GET['subject_id'])) {
+        $filters[] = "grades.subject_id = ?";
+        $params[] = $_GET['subject_id'];
+    }
 }
 
-// Add filters to the query
+// Apply filters
 if (!empty($filters)) {
     $query .= " WHERE " . implode(" AND ", $filters);
 }
 
-// Order the grades by created_at
-$query .= " ORDER BY grades.created_at DESC";
+// Sorting
+$sortOrder = (isset($_GET['sort_order']) && strtolower($_GET['sort_order']) === 'asc') ? 'ASC' : 'DESC';
 
-// Prepare and execute the query
+// Teacher sorts by date, or by grade if subject is selected
+if ($isTeacher) {
+    if (!empty($_GET['subject_id'])) {
+        $query .= " ORDER BY grades.grade $sortOrder";
+    } else {
+        $query .= " ORDER BY grades.created_at $sortOrder";
+    }
+} else {
+    // Students always sort by grade
+    $query .= " ORDER BY grades.grade $sortOrder";
+}
+
+// Execute
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <h2>Grades</h2>
 
-<!-- Display feedback messages -->
 <?php if (isset($_GET['action']) && $_GET['action'] === 'deleted'): ?>
     <p style="color: green;">Grade successfully deleted.</p>
 <?php endif; ?>
 
-<!-- Filter Section -->
 <?php if ($isTeacher): ?>
+<!-- Teacher filter form -->
 <form method="get" style="margin-bottom: 20px;">
     <label for="student_id">Filter by Student:</label>
     <select name="student_id" id="student_id">
-        <option value="">Select Student</option>
+        <option value="">All Students</option>
         <?php foreach ($students as $student): ?>
             <option value="<?= $student['id'] ?>" <?= isset($_GET['student_id']) && $_GET['student_id'] == $student['id'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($student['first_name'] . ' ' . $student['last_name']) ?>
@@ -82,7 +94,7 @@ $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <label for="subject_id">Filter by Subject:</label>
     <select name="subject_id" id="subject_id">
-        <option value="">Select Subject</option>
+        <option value="">All Subjects</option>
         <?php foreach ($subjects as $subject): ?>
             <option value="<?= $subject['id'] ?>" <?= isset($_GET['subject_id']) && $_GET['subject_id'] == $subject['id'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($subject['subject_name']) ?>
@@ -90,13 +102,40 @@ $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endforeach; ?>
     </select>
 
+    <label for="sort_order">Sort by:</label>
+    <select name="sort_order" id="sort_order">
+        <option value="asc" <?= isset($_GET['sort_order']) && $_GET['sort_order'] == 'asc' ? 'selected' : '' ?>>Ascending</option>
+        <option value="desc" <?= isset($_GET['sort_order']) && $_GET['sort_order'] == 'desc' ? 'selected' : '' ?>>Descending</option>
+    </select>
+
     <button type="submit">Filter</button>
 </form>
 <?php endif; ?>
 
-<!-- Check if grades exist -->
+<?php if (!$isTeacher): ?>
+<!-- Student filter form -->
+<form method="get" style="margin-bottom: 20px;">
+    <label for="subject_id">Filter by Subject:</label>
+    <select name="subject_id" id="subject_id">
+        <option value="">All Subjects</option>
+        <?php foreach ($subjects as $subject): ?>
+            <option value="<?= $subject['id'] ?>" <?= isset($_GET['subject_id']) && $_GET['subject_id'] == $subject['id'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars($subject['subject_name']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <label for="sort_order">Sort by Grade:</label>
+    <select name="sort_order" id="sort_order">
+        <option value="asc" <?= isset($_GET['sort_order']) && $_GET['sort_order'] == 'asc' ? 'selected' : '' ?>>Ascending</option>
+        <option value="desc" <?= isset($_GET['sort_order']) && $_GET['sort_order'] == 'desc' ? 'selected' : '' ?>>Descending</option>
+    </select>
+
+    <button type="submit">Filter</button>
+</form>
+<?php endif; ?>
+
 <?php if ($grades): ?>
-<!-- Grades Table -->
 <table border="1">
     <thead>
         <tr>
@@ -134,5 +173,4 @@ $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <p>No grades available.</p>
 <?php endif; ?>
 
-<!-- Home Page Link -->
 <a href="index.php">Back to Home</a>
