@@ -4,17 +4,16 @@ require_once 'auth.php';
 
 requireLogin();
 
-// Check if the grade ID is provided
 if (!isset($_GET['id'])) {
     die("Grade ID is required.");
 }
 
 $gradeId = $_GET['id'];
 
-// Delete the grade from the grades table
+// First, delete the grade
 $stmt = $pdo->prepare("DELETE FROM grades WHERE id = ?");
 $stmt->execute([$gradeId]);
 
-// Redirect to the view grades page
-header("Location: view_grades.php");
+// Redirect back to the grades page with a success message
+header("Location: view_grades.php?action=deleted");
 exit;

@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="text" name="subject_name" value="<?= htmlspecialchars($grade['subject_name']) ?>" required><br>
 
     <label for="grade">Grade:</label>
-    <input type="number" name="grade" value="<?= htmlspecialchars($grade['grade']) ?>" step="0.1" required><br>
+    <input type="number" name="grade" value="<?= htmlspecialchars($grade['grade']) ?>" step="1" required><br>
 
     <button type="submit">Update Grade</button>
 </form>

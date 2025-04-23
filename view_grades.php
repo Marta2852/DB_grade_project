@@ -62,6 +62,11 @@ $grades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <h2>Grades</h2>
 
+<!-- Display feedback messages -->
+<?php if (isset($_GET['action']) && $_GET['action'] === 'deleted'): ?>
+    <p style="color: green;">Grade successfully deleted.</p>
+<?php endif; ?>
+
 <!-- Filter Section -->
 <?php if ($isTeacher): ?>
 <form method="get" style="margin-bottom: 20px;">
